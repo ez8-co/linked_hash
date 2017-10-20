@@ -1,14 +1,46 @@
 #pragma once
 
 #include <cassert>
+#include <string>
+#include <iterator>
+#include <hash_set>
+using namespace std;
 
-#ifndef __WINDOWS__
+template <class value_type>
+class LinkedHashEntry
+{
+public:
+	LinkedHashEntry ()
+		: val ()
+		, prev (0)
+		, next (0)
+	{
+	}
+	LinkedHashEntry (LinkedHashEntry* p, LinkedHashEntry* n)
+		: val ()
+		, prev (p)
+		, next (n)
+	{
+	}
+	LinkedHashEntry (const value_type& v, LinkedHashEntry* p, LinkedHashEntry* n)
+		: val (v)
+		, prev (p)
+		, next (n)
+	{
+	}
+	value_type val;
+	LinkedHashEntry* prev;
+	LinkedHashEntry* next;
+}; // end class LinkedHashEntry
+
+#ifndef _WIN32
+#define stdext __gnu_cxx
 namespace stdext
 {
 	template<>
 	struct hash<string>
 	{
-		size_t operator() (const string& s) const
+		inline size_t operator() (const string& s) const
 		{
 			return __stl_hash_string (s.c_str());
 		}
@@ -16,53 +48,24 @@ namespace stdext
 }
 #endif
 
-template <class value_type>
-struct LinkedHashEntry
-{
-public:
-	LinkedHashEntry (void)
-		: _myValue ()
-		, _before (0)
-		, _after (0)
-	{
-	}
-	LinkedHashEntry (const value_type& value, LinkedHashEntry* b = 0)
-		: _myValue (value)
-		, _before (b)
-		, _after (0)
-	{
-	}
-	value_type _myValue;
-	LinkedHashEntry* _before;
-	LinkedHashEntry* _after;
-}; // end class LinkedHashEntry
-
-template <class _Ty, class _ListType>
+template <class _Ty>
 struct LinkedHashConstIter
 	: public std::iterator <std::bidirectional_iterator_tag, _Ty>
 {
-public:
 	typedef _Ty value_type;
 	typedef value_type& reference;
 	typedef value_type* pointer;
 	typedef const value_type& const_reference;
 	typedef const value_type* const_pointer;
 
-	LinkedHashConstIter (void)
-		: _ptr (0)
-		, _list (0)
-	{
-	}
-
-	explicit LinkedHashConstIter (pointer ptr, const _ListType * const list)
+	explicit LinkedHashConstIter (LinkedHashEntry<value_type>* ptr)
 		: _ptr (ptr)
-		, _list (const_cast<_ListType*> (list))
 	{
 	}
 
 	const_reference operator* () const
 	{	// return designated value
-		return static_cast<const_reference> (*_ptr);
+		return static_cast<const_reference> (_ptr->val);
 	}
 
 	const_pointer operator-> () const
@@ -72,8 +75,7 @@ public:
 
 	LinkedHashConstIter& operator++ ()
 	{	// preincrement
-		assert (_ptr != 0);
-		_list->_Inc (_ptr);
+		_ptr = _ptr->next;
 		return (*this);
 	}
 
@@ -86,7 +88,7 @@ public:
 
 	LinkedHashConstIter& operator-- ()
 	{	// predecrement
-		_list->_Dec (_ptr);
+		_ptr = _ptr->prev;
 		return (*this);
 	}
 
@@ -108,31 +110,25 @@ public:
 	}
 
 protected:
-	pointer _ptr;	// pointer to node
-	_ListType* _list;
+	LinkedHashEntry<value_type>* _ptr;	// pointer to node
 }; // end class LinkedHashConstIter
 
-template <class _Ty, class _ListType>
-class LinkedHashIter
-	: public LinkedHashConstIter<_Ty, _ListType>
+template <class _Ty>
+struct LinkedHashIter
+	: public LinkedHashConstIter<_Ty>
 {
-public:
 	typedef _Ty value_type;
 	typedef value_type& reference;
 	typedef value_type* pointer;
 
-	LinkedHashIter (void)
-	{	// construct with null node pointer
-	}
-
-	explicit LinkedHashIter (pointer ptr, _ListType* list)
-		: LinkedHashConstIter<value_type, _ListType> (ptr, list)
-	{	// construct with node pointer _Pnode
+	explicit LinkedHashIter (LinkedHashEntry<value_type>*const ptr)
+		: LinkedHashConstIter<value_type> (ptr)
+	{	// construct with node pointer
 	}
 
 	reference operator* () const
 	{	// return designated value
-		return ((reference)**(LinkedHashConstIter<value_type, _ListType> *)this);
+		return ((reference)**(LinkedHashConstIter<value_type> *)this);
 	}
 
 	pointer operator-> () const
@@ -142,7 +138,7 @@ public:
 
 	LinkedHashIter& operator++ ()
 	{	// preincrement
-		++(*(LinkedHashConstIter<value_type, _ListType> *)this);
+		++(*(LinkedHashConstIter<value_type> *)this);
 		return (*this);
 	}
 
@@ -155,7 +151,7 @@ public:
 
 	LinkedHashIter& operator-- ()
 	{	// predecrement
-		--(*(LinkedHashConstIter<value_type, _ListType> *)this);
+		--(*(LinkedHashConstIter<value_type> *)this);
 		return (*this);
 	}
 

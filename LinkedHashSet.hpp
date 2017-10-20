@@ -2,54 +2,56 @@
 
 #include "LinkedHashStructure.h"
 
-#ifdef __WINDOWS__
+namespace std
+{
+	template<class _Kty>
+	struct equal_to<LinkedHashEntry<_Kty>*>
+	{
+		inline bool operator() (const LinkedHashEntry<_Kty>* lhs, const LinkedHashEntry<_Kty>* rhs) const
+		{
+			return lhs->val == rhs->val;
+		}
+	};
+}
+
+#ifdef _WIN32
 template < class _Kty, class HashFcn = stdext::hash_compare <_Kty, less<_Kty> > >
 #else
 template < class _Kty, class HashFcn = stdext::hash <_Kty> >
 #endif
 class LinkedHashSet
 {
-public:
-	struct LinkedHashSetEntryWrap
+private:
+	struct LHSHasher
 	{
-		LinkedHashSetEntryWrap (LinkedHashEntry<_Kty>* e)
-			: entry (e)
-		{
-		}
-		bool operator==(const LinkedHashSetEntryWrap& rhs) const
-		{
-			return entry->_myValue == rhs.entry->_myValue;
-		}
-		LinkedHashEntry<_Kty>* entry;
-	}; // end class LinkedHashSetEntryWrap
-
-	struct LinkedHashSetEntryWrapHash
-	{
-		LinkedHashSetEntryWrapHash (void)
+		LHSHasher (void)
 			: comp ()
 		{
 		}
-#ifdef __WINDOWS__
+#ifdef _WIN32
 		enum
 		{	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
-			min_buckets = 8};	// min_buckets = 2 ^^ N, 0 < N
+			min_buckets = 8
+		};	// min_buckets = 2 ^^ N, 0 < N
 
-		bool operator()(const LinkedHashSetEntryWrap& lhs, const LinkedHashSetEntryWrap& rhs) const
+		inline bool operator()(const LinkedHashEntry<_Kty>* lhs, const LinkedHashEntry<_Kty>* rhs) const
 		{	// test if _Keyval1 ordered before _Keyval2
-			return (comp (lhs.entry->_myValue, rhs.entry->_myValue));
+			return (comp (lhs->val, rhs->val));
+		}
+#else
+		inline size_t operator() (const LinkedHashEntry<_Kty>* entry) const
+		{
+			return comp (entry->val);
 		}
 #endif
-		size_t operator() (const LinkedHashSetEntryWrap& wrap) const
-		{
-			return comp (wrap.entry->_myValue);
-		}
 
 	private:
 		HashFcn comp;
-	}; // end class LinkedHashSetEntryWrapHash
+	}; // end class LHSHasher
 
-	typedef stdext::hash_set < LinkedHashSetEntryWrap, LinkedHashSetEntryWrapHash > _LinkedHashSet;
+public:
+	typedef stdext::hash_set<LinkedHashEntry<_Kty>*, LHSHasher> _LinkedHashSet;
 	typedef typename _LinkedHashSet::iterator _MyIter;
 	typedef typename _LinkedHashSet::const_iterator _MyCIter;
 	typedef typename _LinkedHashSet::size_type size_type;
@@ -59,8 +61,8 @@ public:
 	typedef value_type& reference;
 	typedef const value_type* const_pointer;
 	typedef const value_type& const_reference;
-	typedef LinkedHashIter<value_type, LinkedHashSet> iterator;
-	typedef LinkedHashConstIter<value_type, LinkedHashSet> const_iterator;
+	typedef LinkedHashIter<value_type> iterator;
+	typedef LinkedHashConstIter<value_type> const_iterator;
 	typedef std::reverse_iterator<iterator> reverse_iterator;
 	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 	typedef std::pair<iterator, bool> _Pairib;
@@ -74,28 +76,28 @@ public:
 
 	iterator find (const key_type& key)
 	{
-		_entry._myValue = key;
-		_MyIter findIter = _linkedHashSet.find (_entryWrap);
-		if (findIter != _linkedHashSet.end ()) {
-			return iterator (&findIter->entry->_myValue, this);
+		_entry.val = key;
+		_MyIter it = _linkedHashSet.find (&_entry);
+		if (it != _linkedHashSet.end ()) {
+			return iterator (*it);
 		}
-		return iterator ();
+		return iterator (&_head);
 	}
 
 	const_iterator find (const key_type& key) const
 	{
-		_entry._myValue = key;
-		_MyCIter findIter = _linkedHashSet.find (_entryWrap);
-		if (findIter != _linkedHashSet.end ()) {
-			return const_iterator (&findIter->entry->_myValue, this);
+		_entry.val = key;
+		_MyCIter it = _linkedHashSet.find (&_entry);
+		if (it != _linkedHashSet.end ()) {
+			return const_iterator (*it);
 		}
-		return const_iterator ();
+		return const_iterator (&_head);
 	}
 
 	bool exist (const key_type& key) const
 	{
-		_entry._myValue = key;
-		return (_linkedHashSet.find (_entryWrap) != _linkedHashSet.end ());
+		_entry.val = key;
+		return (_linkedHashSet.find (&_entry) != _linkedHashSet.end ());
 	}
 
 	size_type size (void) const
@@ -115,22 +117,22 @@ public:
 
 	iterator begin (void)
 	{
-		return iterator (&_head._after->_myValue, this);
+		return iterator (_head.next);
 	}
 
 	const_iterator begin (void) const
 	{
-		return const_iterator (&_head._after->_myValue, this);
+		return const_iterator (_head.next);
 	}
 
 	iterator end (void)
 	{
-		return iterator (0, this);
+		return iterator (&_head);
 	}
 
 	const_iterator end (void) const
 	{
-		return const_iterator (0, this);
+		return const_iterator (&_head);
 	}
 
 	reverse_iterator rbegin (void)
@@ -172,59 +174,27 @@ public:
 	void clear (void);
 
 private:
-	friend class LinkedHashConstIter<value_type, LinkedHashSet>;
-	void _Inc (pointer& ptr)
-	{
-		assert (ptr != 0);
-		_entry._myValue = *ptr;
-		_MyIter findIter = _linkedHashSet.find (_entryWrap);
-		if (findIter != _linkedHashSet.end ()) {
-			ptr = &findIter->entry->_after->_myValue;
-		}
-		else {
-			ptr = 0;
-		}
-	}
-
-	void _Dec (pointer& ptr)
-	{
-		if (ptr) {
-			_entry._myValue = *ptr;
-			_MyIter findIter = _linkedHashSet.find (_entryWrap);
-			ptr = &findIter->entry->_before->_myValue;
-		}
-		else {
-			ptr = &_tail->_myValue;
-		}
-	}
-
 	void assign (const LinkedHashSet& rhs);
 
-	LinkedHashEntry<_Kty> _head;
-	LinkedHashEntry<_Kty>* _tail;
+	LinkedHashEntry<value_type> _head;
 	_LinkedHashSet _linkedHashSet;
 
-	mutable LinkedHashEntry<_Kty> _entry;
-	mutable LinkedHashSetEntryWrap _entryWrap;
+	mutable LinkedHashEntry<value_type> _entry;
 }; // end class LinkedHashSet// public
 
 template <class _Kty, class HashFcn>
 LinkedHashSet<_Kty, HashFcn>::LinkedHashSet (void)
-	: _head ()
-	, _tail (&_head)
+	: _head (&_head, &_head)
 	, _linkedHashSet ()
 	, _entry ()
-	, _entryWrap (&_entry)
 {
 }
 
 template <class _Kty, class HashFcn>
 LinkedHashSet<_Kty, HashFcn>::LinkedHashSet (const LinkedHashSet& rhs)
-	: _head ()
-	, _tail (&_head)
+	: _head (&_head, &_head)
 	, _linkedHashSet ()
 	, _entry ()
-	, _entryWrap (&_entry)
 {
 	assign (rhs);
 }
@@ -245,14 +215,14 @@ void
 LinkedHashSet<_Kty, HashFcn>::assign (const LinkedHashSet& rhs)
 {
 	if (this != &rhs) {
-		LinkedHashEntry<_Kty>* pos = rhs._head._after;
-		while (pos) {
+		LinkedHashEntry<_Kty>* pos = rhs._head.next;
+		while (pos != &rhs._head) {
 			LinkedHashEntry<_Kty>* entry =
-				new LinkedHashEntry<_Kty> (pos->_myValue, _tail);
-			_linkedHashSet.insert (LinkedHashSetEntryWrap (entry));
-			_tail->_after = entry;
-			_tail = entry;
-			pos = pos->_after;
+				new LinkedHashEntry<_Kty> (pos->val, _head.prev, &_head);
+			_linkedHashSet.insert (entry);
+			_head.prev->next = entry;
+			_head.prev = entry;
+			pos = pos->next;
 		}
 	}
 }
@@ -270,10 +240,10 @@ LinkedHashSet<_Kty, HashFcn>::insert (const key_type& value)
 {
 	if (!exist (value)) {
 		LinkedHashEntry<_Kty>* entry =
-			new LinkedHashEntry<_Kty> (value, _tail);
-		_linkedHashSet.insert (LinkedHashSetEntryWrap (entry));
-		_tail->_after = entry;
-		_tail = entry;
+			new LinkedHashEntry<_Kty> (value, _head.prev, &_head);
+		_linkedHashSet.insert (entry);
+		_head.prev->next = entry;
+		_head.prev = entry;
 	}
 }
 
@@ -282,24 +252,21 @@ template <class _Kty, class HashFcn>
 typename LinkedHashSet<_Kty, HashFcn>::iterator
 LinkedHashSet<_Kty, HashFcn>::access (const key_type& key)
 {
-	_entry._myValue = key;
-	_MyIter findIter = _linkedHashSet.find (_entryWrap);
-	if (findIter != _linkedHashSet.end ()) {
-		// is not tail in link
-		if (findIter->entry->_after) {
-			// remove it from the link
-			findIter->entry->_before->_after = findIter->entry->_after;
-			findIter->entry->_after->_before = findIter->entry->_before;
+	_entry.val = key;
+	_MyIter it = _linkedHashSet.find (&_entry);
+	if (it != _linkedHashSet.end ()) {
+		// remove it from the link
+		(*it)->prev->next = (*it)->next;
+		(*it)->next->prev = (*it)->prev;
 
-			// relink to tail
-			findIter->entry->_before = _tail;
-			_tail->_after = findIter->entry;
-			_tail = findIter->entry;
-			_tail->_after = 0;
-		}
-		return iterator (&findIter->entry->_myValue, this);
+		// relink to tail
+		(*it)->prev = _head.prev;
+		(*it)->next = &_head;
+		_head.prev->next = *it;
+		_head.prev = *it;
+		return iterator (*it);
 	}
-	return iterator ();
+	return iterator (&_head);
 }
 
 // public
@@ -307,8 +274,8 @@ template <class _Kty, class HashFcn>
 const _Kty&
 LinkedHashSet<_Kty, HashFcn>::front (void)
 {
-	assert (_head._after != 0);
-	return _head._after->_myValue;
+	assert (_head.next != &_head);
+	return _head.next->val;
 }
 
 // public
@@ -316,8 +283,8 @@ template <class _Kty, class HashFcn>
 const _Kty&
 LinkedHashSet<_Kty, HashFcn>::front (void) const
 {
-	assert (_head._after != 0);
-	return _head._after->_myValue;
+	assert (_head.next != &_head);
+	return _head.next->val;
 }
 
 // public
@@ -325,18 +292,11 @@ template <class _Kty, class HashFcn>
 void
 LinkedHashSet<_Kty, HashFcn>::pop_front (void)
 {
-	assert (_head._after != 0);
-	LinkedHashEntry<_Kty>* entry = _head._after;
-	LinkedHashSetEntryWrap entryWrap (entry);
-	_linkedHashSet.erase (entryWrap);
-	_head._after = entry->_after;
-	// is not tail in link
-	if (entry->_after) {
-		entry->_after->_before = &_head;
-	}
-	else {
-		_tail = &_head;
-	}
+	assert (_head.next != &_head);
+	LinkedHashEntry<_Kty>* entry = _head.next;
+	_linkedHashSet.erase (entry);
+	_head.next = entry->next;
+	_head.next->prev = &_head;
 	delete entry;
 }
 
@@ -345,21 +305,14 @@ template <class _Kty, class HashFcn>
 typename LinkedHashSet<_Kty, HashFcn>::size_type
 LinkedHashSet<_Kty, HashFcn>::erase (const key_type& key)
 {
-	_entry._myValue = key;
-	_MyIter findIter = _linkedHashSet.find (_entryWrap);
-	if (findIter != _linkedHashSet.end ()) {
-		// is not tail in link
-		if (findIter->entry->_after) {
-			// remove it from the link
-			findIter->entry->_before->_after = findIter->entry->_after;
-			findIter->entry->_after->_before = findIter->entry->_before;
-		}
-		else {
-			_tail = findIter->entry->_before;
-			_tail->_after = 0;
-		}
-		LinkedHashEntry<_Kty>* entry = findIter->entry;
-		_linkedHashSet.erase (findIter);
+	_entry.val = key;
+	_MyIter it = _linkedHashSet.find (&_entry);
+	if (it != _linkedHashSet.end ()) {
+		// remove it from the link
+		(*it)->prev->next = (*it)->next;
+		(*it)->next->prev = (*it)->prev;
+		LinkedHashEntry<_Kty>* entry = (*it);
+		_linkedHashSet.erase ((*it));
 		delete entry;
 		return 1;
 	}
@@ -396,13 +349,12 @@ template <class _Kty, class HashFcn>
 void
 LinkedHashSet<_Kty, HashFcn>::clear (void)
 {
-	LinkedHashEntry<_Kty>* pos = _head._after;
+	LinkedHashEntry<_Kty>* pos = _head.next;
 	LinkedHashEntry<_Kty>* next = 0;
 	_linkedHashSet.clear ();
-	_head._after = 0;
-	_tail = &_head;
-	while (pos) {
-		next = pos->_after;
+	_head.prev = _head.next = &_head;
+	while (pos != &_head) {
+		next = pos->next;
 		delete pos;
 		pos = next;
 	}

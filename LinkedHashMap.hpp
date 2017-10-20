@@ -2,17 +2,59 @@
 
 #include "LinkedHashStructure.h"
 
-#ifdef __WINDOWS__
+namespace std
+{
+	template<class _Kty, class _Ty>
+	struct equal_to<LinkedHashEntry<std::pair<_Kty, _Ty> >*>
+	{
+		inline bool operator() (const LinkedHashEntry<std::pair<_Kty, _Ty> >* lhs, const LinkedHashEntry<std::pair<_Kty, _Ty> >* rhs) const
+		{
+			return lhs->val.first == rhs->val.first;
+		}
+	};
+}
+
+#ifdef _WIN32
 template < class _Kty, class _Ty, class HashFcn = stdext::hash_compare <_Kty> >
 #else
 template < class _Kty, class _Ty, class HashFcn = stdext::hash <_Kty> >
 #endif
 class LinkedHashMap
 {
+private:
+	struct LHMHasher
+	{
+		typedef std::pair<_Kty, _Ty> value_type;
+		LHMHasher (void)
+			: comp ()
+		{
+		}
+#ifdef _WIN32
+		enum
+		{	// parameters for hash table
+			bucket_size = 4,	// 0 < bucket_size
+			min_buckets = 8
+		};	// min_buckets = 2 ^^ N, 0 < N
+
+		inline bool operator()(const LinkedHashEntry<value_type>* lhs, const LinkedHashEntry<value_type>* rhs) const
+		{	// test if _Keyval1 ordered before _Keyval2
+			return (comp (lhs->val.first, rhs->val.first));
+		}
+#else
+		inline size_t operator() (const LinkedHashEntry<value_type>* entry) const
+		{
+			return comp (entry->val.first);
+		}
+#endif
+
+	private:
+		HashFcn comp;
+	}; // end class LHMHasher
+
 public:
 	typedef _Kty key_type;
 	typedef std::pair<_Kty, _Ty> value_type;
-	typedef stdext::hash_map <_Kty, LinkedHashEntry<value_type>*, HashFcn> _LinkedHashMap;
+	typedef stdext::hash_set<LinkedHashEntry<value_type>*, LHMHasher> _LinkedHashMap;
 	typedef typename _LinkedHashMap::iterator _MyIter;
 	typedef typename _LinkedHashMap::const_iterator _MyCIter;
 	typedef typename _LinkedHashMap::size_type size_type;
@@ -20,8 +62,8 @@ public:
 	typedef value_type& reference;
 	typedef const value_type* const_pointer;
 	typedef const value_type& const_reference;
-	typedef LinkedHashIter<value_type, LinkedHashMap> iterator;
-	typedef LinkedHashConstIter<value_type, LinkedHashMap> const_iterator;
+	typedef LinkedHashIter<value_type> iterator;
+	typedef LinkedHashConstIter<value_type> const_iterator;
 	typedef std::reverse_iterator<iterator> reverse_iterator;
 	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 	typedef std::pair<iterator, bool> _Pairib;
@@ -35,25 +77,28 @@ public:
 
 	iterator find (const key_type& key)
 	{
-		_MyIter findIter = _linkedHashMap.find (key);
-		if (findIter != _linkedHashMap.end ()) {
-			return iterator (&findIter->second->_myValue, this);
+		_entry.val.first = key;
+		_MyIter it = _linkedHashMap.find (&_entry);
+		if (it != _linkedHashMap.end ()) {
+			return iterator (*it);
 		}
-		return iterator ();
+		return iterator (&_head);
 	}
 
 	const_iterator find (const key_type& key) const
 	{
-		_MyCIter findIter = _linkedHashMap.find (key);
-		if (findIter != _linkedHashMap.end ()) {
-			return const_iterator (&findIter->second->_myValue, this);
+		_entry.val.first = key;
+		_MyCIter it = _linkedHashMap.find (&_entry);
+		if (it != _linkedHashMap.end ()) {
+			return const_iterator (*it);
 		}
-		return const_iterator ();
+		return const_iterator (&_head);
 	}
 
 	bool exist (const key_type& key) const
 	{
-		return (_linkedHashMap.find (key) != _linkedHashMap.end ());
+		_entry.val.first = key;
+		return (_linkedHashMap.find (&_entry) != _linkedHashMap.end ());
 	}
 
 	size_type size (void) const
@@ -73,22 +118,22 @@ public:
 
 	iterator begin (void)
 	{
-		return iterator (&_head._after->_myValue, this);
+		return iterator (_head.next);
 	}
 
 	const_iterator begin (void) const
 	{
-		return const_iterator (&_head._after->_myValue, this);
+		return const_iterator (_head.next);
 	}
 
 	iterator end (void)
 	{
-		return iterator (0, this);
+		return iterator (&_head);
 	}
 
 	const_iterator end (void) const
 	{
-		return const_iterator (0, this);
+		return const_iterator (&_head);
 	}
 
 	reverse_iterator rbegin (void)
@@ -132,49 +177,28 @@ public:
 	void clear (void);
 
 private:
-	friend class LinkedHashConstIter<value_type, LinkedHashMap>;
-	void _Inc (pointer& ptr)
-	{
-		assert (ptr != 0);
-		_MyIter findIter = _linkedHashMap.find (ptr->first);
-		if (findIter != _linkedHashMap.end ()) {
-			ptr = &findIter->second->_after->_myValue;
-		}
-		else {
-			ptr = 0;
-		}
-	}
-
-	void _Dec (pointer& ptr)
-	{
-		if (ptr) {
-			_MyIter findIter = _linkedHashMap.find (ptr->first);
-			ptr = &findIter->second->_before->_myValue;
-		}
-		else {
-			ptr = &_tail->_myValue;
-		}
-	}
-
 	void assign (const LinkedHashMap& rhs);
 
 	LinkedHashEntry<value_type> _head;
-	LinkedHashEntry<value_type>* _tail;
 	_LinkedHashMap _linkedHashMap;
+
+	mutable LinkedHashEntry<value_type> _entry;
 }; // end class LinkedHashMap
 
 // public
 template <class _Kty, class _Ty, class HashFcn>
 LinkedHashMap<_Kty, _Ty, HashFcn>::LinkedHashMap (void)
-	: _head ()
-	, _tail (&_head)
+	: _head (&_head, &_head)
+	, _linkedHashMap ()
+	, _entry ()
 {
 }
 
 template <class _Kty, class _Ty, class HashFcn>
 LinkedHashMap<_Kty, _Ty, HashFcn>::LinkedHashMap (const LinkedHashMap& rhs)
-	: _head ()
-	, _tail (&_head)
+	: _head (&_head, &_head)
+	, _linkedHashMap ()
+	, _entry ()
 {
 	assign (rhs);
 }
@@ -195,14 +219,14 @@ void
 LinkedHashMap<_Kty, _Ty, HashFcn>::assign (const LinkedHashMap& rhs)
 {
 	if (this != &rhs) {
-		LinkedHashEntry<value_type>* pos = rhs._head._after;
-		while (pos) {
+		LinkedHashEntry<value_type>* pos = rhs._head.next;
+		while (pos != &rhs._head) {
 			LinkedHashEntry<value_type>* entry =
-				new LinkedHashEntry<value_type> (pos->_myValue, _tail);
-			_linkedHashMap.insert (std::make_pair (pos->_myValue.first, entry));
-			_tail->_after = entry;
-			_tail = entry;
-			pos = pos->_after;
+				new LinkedHashEntry<value_type> (pos->val, _head.prev, &_head);
+			_linkedHashMap.insert (entry);
+			_head.prev->next = entry;
+			_head.prev = entry;
+			pos = pos->next;
 		}
 	}
 }
@@ -218,12 +242,14 @@ template < class _Kty, class _Ty, class HashFcn>
 void
 LinkedHashMap<_Kty, _Ty, HashFcn>::insert (const value_type& value)
 {
-	if (!exist (value.first)) {
+	_entry.val.first = value.first;
+	_MyIter it = _linkedHashMap.find (&_entry);
+	if (it == _linkedHashMap.end ()) {
 		LinkedHashEntry<value_type>* entry =
-			new LinkedHashEntry<value_type> (value, _tail);
-		_linkedHashMap.insert (std::make_pair (value.first, entry));
-		_tail->_after = entry;
-		_tail = entry;
+			new LinkedHashEntry<value_type> (value, _head.prev, &_head);
+		_linkedHashMap.insert (entry);
+		_head.prev->next = entry;
+		_head.prev = entry;
 	}
 }
 
@@ -231,17 +257,18 @@ template < class _Kty, class _Ty, class HashFcn>
 _Ty&
 LinkedHashMap<_Kty, _Ty, HashFcn>::operator[] (const key_type& key)
 {
-	_MyIter findIter = _linkedHashMap.find (key);
-	if (findIter == _linkedHashMap.end ()) {
+	_entry.val.first = key;
+	_MyIter it = _linkedHashMap.find (&_entry);
+	if (it == _linkedHashMap.end ()) {
 		LinkedHashEntry<value_type>* entry =
-			new LinkedHashEntry<value_type> (std::make_pair (key, _Ty ()), _tail);
-		_linkedHashMap.insert (std::make_pair (key, entry));
-		_tail->_after = entry;
-		_tail = entry;
-		return entry->_myValue.second;
+			new LinkedHashEntry<value_type> (std::make_pair (key, _Ty ()), _head.prev, &_head);
+		_linkedHashMap.insert (entry);
+		_head.prev->next = entry;
+		_head.prev = entry;
+		return entry->val.second;
 	}
 	else {
-		return findIter->second->_myValue.second;
+		return (*it)->val.second;
 	}
 }
 
@@ -250,23 +277,21 @@ template <class _Kty, class _Ty, class HashFcn>
 typename LinkedHashMap<_Kty, _Ty, HashFcn>::iterator
 LinkedHashMap<_Kty, _Ty, HashFcn>::access (const key_type& key)
 {
-	_MyIter findIter = _linkedHashMap.find (key);
-	if (findIter != _linkedHashMap.end ()) {
-		// is not tail in link
-		if (findIter->second->_after) {
-			// remove it from the link
-			findIter->second->_before->_after = findIter->second->_after;
-			findIter->second->_after->_before = findIter->second->_before;
+	_entry.val.first = key;
+	_MyIter it = _linkedHashMap.find (&_entry);
+	if (it != _linkedHashMap.end ()) {
+		// remove it from the link
+		(*it)->prev->next = (*it)->next;
+		(*it)->next->prev = (*it)->prev;
 
-			// relink to tail
-			findIter->second->_before = _tail;
-			_tail->_after = findIter->second;
-			_tail = findIter->second;
-			_tail->_after = 0;
-		}
-		return iterator (&findIter->second->_myValue, this);
+		// relink to tail
+		(*it)->prev = _head.prev;
+		(*it)->next = &_head;
+		_head.prev->next = *it;
+		_head.prev = *it;
+		return iterator (*it);
 	}
-	return iterator ();
+	return iterator (&_head);
 }
 
 // public
@@ -274,8 +299,8 @@ template <class _Kty, class _Ty, class HashFcn>
 _Ty&
 LinkedHashMap<_Kty, _Ty, HashFcn>::front (void)
 {
-	assert (_head._after != 0);
-	return _head._after->_myValue.second;
+	assert (_head.next != &_head);
+	return _head.next->val.second;
 }
 
 // public
@@ -283,8 +308,8 @@ template <class _Kty, class _Ty, class HashFcn>
 const _Ty&
 LinkedHashMap<_Kty, _Ty, HashFcn>::front (void) const
 {
-	assert (_head._after != 0);
-	return _head._after->_myValue.second;
+	assert (_head.next != &_head);
+	return _head.next->val.second;
 }
 
 // public
@@ -292,17 +317,11 @@ template <class _Kty, class _Ty, class HashFcn>
 void
 LinkedHashMap<_Kty, _Ty, HashFcn>::pop_front (void)
 {
-	assert (_head._after != 0);
-	LinkedHashEntry<value_type>* entry = _head._after;
-	_linkedHashMap.erase (entry->_myValue.first);
-	_head._after = entry->_after;
-	// is not tail in link
-	if (entry->_after) {
-		entry->_after->_before = &_head;
-	}
-	else {
-		_tail = &_head;
-	}
+	assert (_head.next != &_head);
+	LinkedHashEntry<value_type>* entry = _head.next;
+	_linkedHashMap.erase (entry);
+	_head.next = entry->next;
+	_head.next->prev = &_head;
 	delete entry;
 }
 
@@ -311,20 +330,14 @@ template <class _Kty, class _Ty, class HashFcn>
 typename LinkedHashMap<_Kty, _Ty, HashFcn>::size_type
 LinkedHashMap<_Kty, _Ty, HashFcn>::erase (const key_type& key)
 {
-	_MyIter findIter = _linkedHashMap.find (key);
-	if (findIter != _linkedHashMap.end ()) {
-		// is not tail in link
-		if (findIter->second->_after) {
-			// remove it from the link
-			findIter->second->_before->_after = findIter->second->_after;
-			findIter->second->_after->_before = findIter->second->_before;
-		}
-		else {
-			_tail = findIter->second->_before;
-			_tail->_after = 0;
-		}
-		LinkedHashEntry<value_type>* entry = findIter->second;
-		_linkedHashMap.erase (findIter);
+	_entry.val.first = key;
+	_MyIter it = _linkedHashMap.find (&_entry);
+	if (it != _linkedHashMap.end ()) {
+		// remove it from the link
+		(*it)->prev->next = (*it)->next;
+		(*it)->next->prev = (*it)->prev;
+		LinkedHashEntry<value_type>* entry = *it;
+		_linkedHashMap.erase (entry);
 		delete entry;
 		return 1;
 	}
@@ -361,13 +374,12 @@ template <class _Kty, class _Ty, class HashFcn>
 void
 LinkedHashMap<_Kty, _Ty, HashFcn>::clear (void)
 {
-	LinkedHashEntry<value_type>* pos = _head._after;
+	LinkedHashEntry<value_type>* pos = _head.next;
 	LinkedHashEntry<value_type>* next = 0;
 	_linkedHashMap.clear ();
-	_head._after = 0;
-	_tail = &_head;
-	while (pos) {
-		next = pos->_after;
+	_head.prev = _head.next = &_head;
+	while (pos != &_head) {
+		next = pos->next;
 		delete pos;
 		pos = next;
 	}

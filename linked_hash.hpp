@@ -130,7 +130,7 @@ private:
 	struct lhs_hasher
 	{
 		lhs_hasher() : cmp() {}
-#if _MSC_VER < 1500
+#if defined(_MSC_VER) && _MSC_VER < 1500
 		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8
@@ -241,10 +241,13 @@ linked_hash_set<_Kty, HashFcn>::insert(const key_type& value)
 	_lhs_iter it = _lhs.find((lh_entry<value_type>*)&value);
 	if(it == _lhs.end()) {
 		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
-		_lhs.insert(entry);
-		_head.prev->next = entry;
-		_head.prev = entry;
-		return std::make_pair(iterator(*it), true);
+		std::pair<_lhs_iter, bool> ib = _lhs.insert(entry);
+		if(ib.second) {
+			_head.prev->next = entry;
+			_head.prev = entry;
+			return std::make_pair(iterator(*ib.first), true);
+		}
+		delete entry;
 	}
 	return std::make_pair(iterator(&_head), false);
 }
@@ -334,7 +337,7 @@ private:
 	{
 		typedef std::pair<_Kty, _Ty> value_type;
 		lhm_hasher() : cmp() {}
-#if _MSC_VER < 1500
+#if defined(_MSC_VER) && _MSC_VER < 1500
 		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8
@@ -448,10 +451,13 @@ linked_hash_map<_Kty, _Ty, HashFcn>::insert(const value_type& value)
 	_lhm_iter it = _lhm.find((lh_entry<value_type>*)&value);
 	if(it == _lhm.end()) {
 		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
-		_lhm.insert(entry);
-		_head.prev->next = entry;
-		_head.prev = entry;
-		return std::make_pair(iterator(*it), true);
+		std::pair<_lhm_iter, bool> ib = _lhm.insert(entry);
+		if(ib.second) {
+			_head.prev->next = entry;
+			_head.prev = entry;
+			return std::make_pair(iterator(*ib.first), true);
+		}
+		delete entry;
 	}
 	return std::make_pair(iterator(&_head), false);
 }

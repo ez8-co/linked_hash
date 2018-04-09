@@ -46,7 +46,9 @@ namespace __gnu_cxx
 	template<>
 	struct hash<string>
 	{
-		inline size_t operator()(const string& s) const { return __stl_hash_string(s.c_str()); }
+		inline size_t operator()(const string& s) const {
+			return __stl_hash_string(s.c_str());
+		}
 	};
 }
 #endif
@@ -94,11 +96,11 @@ struct lh_const_iter : public std::iterator<std::bidirectional_iterator_tag, _Ty
 
 	explicit lh_const_iter(lh_entry<value_type>* ptr) : _ptr(ptr) {}
 	const_reference operator*() const { return static_cast<const_reference>(_ptr->val); }
-	const_pointer operator->() const { return(&**this); }
-	lh_const_iter& operator++() { _ptr = _ptr->next; return(*this); }
-	lh_const_iter operator++(int) { lh_const_iter tmp = *this; ++*this; return(tmp); }
-	lh_const_iter& operator--() { _ptr = _ptr->prev; return(*this); }
-	lh_const_iter operator--(int) { lh_const_iter tmp = *this; --*this; return(tmp); }
+	const_pointer operator->() const  { return(&**this); }
+	lh_const_iter& operator++()       { _ptr = _ptr->next; return(*this); }
+	lh_const_iter operator++(int)     { lh_const_iter tmp = *this; ++*this; return(tmp); }
+	lh_const_iter& operator--()       { _ptr = _ptr->prev; return(*this); }
+	lh_const_iter operator--(int)     { lh_const_iter tmp = *this; --*this; return(tmp); }
 
 	bool operator==(const lh_const_iter& rhs) const { return(_ptr == rhs._ptr); }
 	bool operator!=(const lh_const_iter& rhs) const { return(!(*this == rhs)); }
@@ -116,11 +118,9 @@ struct lh_iter : public lh_const_iter<_Ty>
 
 	explicit lh_iter(lh_entry<value_type>*const ptr) : lh_const_iter<value_type>(ptr) {}
 	reference operator*() const { return((reference)**(lh_const_iter<value_type> *)this); }
-	pointer operator->() const { return(&**this); }
-	lh_iter& operator++() { ++(*(lh_const_iter<value_type> *)this); return(*this); }
-	lh_iter operator++(int) { lh_iter tmp = *this; 	++*this; return(tmp); }
-	lh_iter& operator--() { --(*(lh_const_iter<value_type> *)this); return(*this); }
-	lh_iter operator--(int) { lh_iter tmp = *this; 	--*this; return(tmp); }
+	pointer operator->() const  { return(&**this); }
+	lh_iter& operator++()       { ++(*(lh_const_iter<value_type> *)this); return(*this); }
+	lh_iter& operator--()       { --(*(lh_const_iter<value_type> *)this); return(*this); }
 };
 
 template<class _Kty, class HashFcn/* = lh_hash_fcn <_Kty> */>
@@ -183,34 +183,32 @@ public:
 		return const_iterator(it != _lhs.end() ? *it : &_head);
 	}
 
-	bool count(const key_type& key) const { return _lhs.count((lh_entry<value_type>*)&key); }
-
-	size_type size() const { return _lhs.size(); }
-	size_type max_size() const { return _lhs.max_size(); }
-	bool empty() const { return _lhs.empty(); }
-	iterator begin() { return iterator(_head.next); }
-	const_iterator begin() const { return const_iterator(_head.next); }
-	iterator end() { return iterator(&_head); }
-	const_iterator end() const { return const_iterator(&_head); }
-	reverse_iterator rbegin() { return reverse_iterator(end()); }
-	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
-	reverse_iterator rend() { return reverse_iterator(begin()); }
-	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
-
 	iterator access(const key_type& key);
 
 	_Pairib insert(const key_type& value);
 
-	const _Kty& front() { assert(!empty()); return _head.next->val; }
-	const _Kty& front() const { assert(!empty()); return _head.next->val; }
+	bool count(const key_type& key) const { return _lhs.count((lh_entry<value_type>*)&key); }
+
+	size_type size() const                { return _lhs.size(); }
+	size_type max_size() const            { return _lhs.max_size(); }
+	bool empty() const                    { return _lhs.empty(); }
+
+	iterator begin()                      { return iterator(_head.next); }
+	const_iterator begin() const          { return const_iterator(_head.next); }
+	iterator end()                        { return iterator(&_head); }
+	const_iterator end() const            { return const_iterator(&_head); }
+	reverse_iterator rbegin()             { return reverse_iterator(end()); }
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+	reverse_iterator rend()               { return reverse_iterator(begin()); }
+	const_reverse_iterator rend() const   { return const_reverse_iterator(begin()); }
+
+	const _Kty& front()                   { assert(!empty()); return _head.next->val; }
+	const _Kty& front() const             { assert(!empty()); return _head.next->val; }
 	void pop_front();
 
 	size_type erase(const key_type& key);
-
-	void erase(const_iterator iter) { erase(*iter); }
-
+	void erase(const_iterator iter)       { erase(*iter); }
 	void erase(const_iterator first, const_iterator last);
-
 	void clear();
 
 private:
@@ -389,24 +387,24 @@ public:
 		return const_iterator(it != _lhm.end() ? *it : &_head);
 	}
 
-	bool count(const key_type& key) const { return _lhm.count((lh_entry<value_type>*)&key); }
-
-	size_type size() const { return (_lhm.size()); }
-	size_type max_size() const { return (_lhm.max_size()); }
-	bool empty() const { return (_lhm.empty()); }
-
-	iterator begin() { return iterator(_head.next); }
-	const_iterator begin() const { return const_iterator(_head.next); }
-	iterator end() { return iterator(&_head); }
-	const_iterator end() const { return const_iterator(&_head); }
-	reverse_iterator rbegin() { return (reverse_iterator(end())); }
-	const_reverse_iterator rbegin() const { return (const_reverse_iterator(end())); }
-	reverse_iterator rend() { return (reverse_iterator(begin())); }
-	const_reverse_iterator rend() const { return (const_reverse_iterator(begin())); }
-
 	iterator access(const key_type& key);
 
 	_Pairib insert(const value_type& value);
+
+	bool count(const key_type& key) const { return _lhm.count((lh_entry<value_type>*)&key); }
+
+	size_type size() const                { return (_lhm.size()); }
+	size_type max_size() const            { return (_lhm.max_size()); }
+	bool empty() const                    { return (_lhm.empty()); }
+
+	iterator begin()                      { return iterator(_head.next); }
+	const_iterator begin() const          { return const_iterator(_head.next); }
+	iterator end()                        { return iterator(&_head); }
+	const_iterator end() const            { return const_iterator(&_head); }
+	reverse_iterator rbegin()             { return (reverse_iterator(end())); }
+	const_reverse_iterator rbegin() const { return (const_reverse_iterator(end())); }
+	reverse_iterator rend()               { return (reverse_iterator(begin())); }
+	const_reverse_iterator rend() const   { return (const_reverse_iterator(begin())); }
 
 	_Ty& operator [](const key_type& key);
 
@@ -415,9 +413,7 @@ public:
 	void pop_front();
 
 	size_type erase(const key_type& key);
-
-	void erase(const_iterator iter) { erase(iter->first); }
-
+	void erase(const_iterator iter)       { erase(iter->first); }
 	void erase(const_iterator first, const_iterator last);
 
 	void clear();

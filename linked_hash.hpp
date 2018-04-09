@@ -32,10 +32,10 @@
 using namespace std;
 
 
-template < class _Kty, class HashFcn = lh_hash_fcn <_Kty> >
+template<class _Kty, class HashFcn = lh_hash_fcn<_Kty> >
 class linked_hash_set;
 
-template < class _Kty, class _Ty, class HashFcn = lh_hash_fcn<_Kty> >
+template<class _Kty, class _Ty, class HashFcn = lh_hash_fcn<_Kty> >
 class linked_hash_map;
 
 
@@ -51,15 +51,8 @@ namespace __gnu_cxx
 }
 #endif
 
-template <class value_type>
-struct lh_entry
-{
-	lh_entry(lh_entry* p = NULL, lh_entry* n = NULL) : val() , prev(p), next(n) {}
-	lh_entry(const value_type& v, lh_entry* p, lh_entry* n) : val(v), prev(p), next(n) {}
-
-	value_type val;
-	lh_entry *prev, *next;
-};
+template<class value_type>
+struct lh_entry;
 
 namespace std
 {
@@ -80,8 +73,18 @@ namespace std
 	};
 }
 
-template <class _Ty>
-struct lh_const_iter : public std::iterator <std::bidirectional_iterator_tag, _Ty>
+template<class value_type>
+struct lh_entry
+{
+	lh_entry(lh_entry* p = NULL, lh_entry* n = NULL) : val() , prev(p), next(n) {}
+	lh_entry(const value_type& v, lh_entry* p, lh_entry* n) : val(v), prev(p), next(n) {}
+
+	value_type val;
+	lh_entry *prev, *next;
+};
+
+template<class _Ty>
+struct lh_const_iter : public std::iterator<std::bidirectional_iterator_tag, _Ty>
 {
 	typedef _Ty value_type;
 	typedef value_type& reference;
@@ -104,7 +107,7 @@ protected:
 	lh_entry<value_type>* _ptr;
 };
 
-template <class _Ty>
+template<class _Ty>
 struct lh_iter : public lh_const_iter<_Ty>
 {
 	typedef _Ty value_type;
@@ -120,7 +123,7 @@ struct lh_iter : public lh_const_iter<_Ty>
 	lh_iter operator--(int) { lh_iter tmp = *this; 	--*this; return(tmp); }
 };
 
-template < class _Kty, class HashFcn/* = lh_hash_fcn <_Kty> */>
+template<class _Kty, class HashFcn/* = lh_hash_fcn <_Kty> */>
 class linked_hash_set
 {
 private:
@@ -217,7 +220,7 @@ private:
 	_linked_hash_set _lhs;
 }; // end class linked_hash_set
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 void
 linked_hash_set<_Kty, HashFcn>::assign(const linked_hash_set& rhs)
 {
@@ -233,7 +236,7 @@ linked_hash_set<_Kty, HashFcn>::assign(const linked_hash_set& rhs)
 	}
 }
 
-template < class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 typename linked_hash_set<_Kty, HashFcn>::_Pairib
 linked_hash_set<_Kty, HashFcn>::insert(const key_type& value)
 {
@@ -248,7 +251,7 @@ linked_hash_set<_Kty, HashFcn>::insert(const key_type& value)
 	return std::make_pair(iterator(&_head), false);
 }
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 typename linked_hash_set<_Kty, HashFcn>::iterator
 linked_hash_set<_Kty, HashFcn>::access(const key_type& key)
 {
@@ -268,7 +271,7 @@ linked_hash_set<_Kty, HashFcn>::access(const key_type& key)
 	return iterator(&_head);
 }
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 void
 linked_hash_set<_Kty, HashFcn>::pop_front()
 {
@@ -280,7 +283,7 @@ linked_hash_set<_Kty, HashFcn>::pop_front()
 	delete entry;
 }
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 typename linked_hash_set<_Kty, HashFcn>::size_type
 linked_hash_set<_Kty, HashFcn>::erase(const key_type& key)
 {
@@ -297,7 +300,7 @@ linked_hash_set<_Kty, HashFcn>::erase(const key_type& key)
 	return 0;
 }
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 void
 linked_hash_set<_Kty, HashFcn>::erase(const_iterator first, const_iterator last)
 {
@@ -311,7 +314,7 @@ linked_hash_set<_Kty, HashFcn>::erase(const_iterator first, const_iterator last)
 	}
 }
 
-template <class _Kty, class HashFcn>
+template<class _Kty, class HashFcn>
 void
 linked_hash_set<_Kty, HashFcn>::clear()
 {
@@ -325,7 +328,7 @@ linked_hash_set<_Kty, HashFcn>::clear()
 	}
 }
 
-template < class _Kty, class _Ty, class HashFcn/* = lh_hash_fcn<_Kty> */>
+template<class _Kty, class _Ty, class HashFcn/* = lh_hash_fcn<_Kty> */>
 class linked_hash_map
 {
 private:
@@ -426,7 +429,7 @@ private:
 	_linked_hash_map _lhm;
 }; // end class linked_hash_map
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 void
 linked_hash_map<_Kty, _Ty, HashFcn>::assign(const linked_hash_map& rhs)
 {
@@ -442,7 +445,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::assign(const linked_hash_map& rhs)
 	}
 }
 
-template < class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 typename linked_hash_map<_Kty, _Ty, HashFcn>::_Pairib
 linked_hash_map<_Kty, _Ty, HashFcn>::insert(const value_type& value)
 {
@@ -457,7 +460,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::insert(const value_type& value)
 	return std::make_pair(iterator(&_head), false);
 }
 
-template < class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 _Ty&
 linked_hash_map<_Kty, _Ty, HashFcn>::operator[](const key_type& key)
 {
@@ -472,7 +475,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::operator[](const key_type& key)
 	return(*it)->val.second;
 }
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 typename linked_hash_map<_Kty, _Ty, HashFcn>::iterator
 linked_hash_map<_Kty, _Ty, HashFcn>::access(const key_type& key)
 {
@@ -492,7 +495,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::access(const key_type& key)
 	return iterator(&_head);
 }
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 void
 linked_hash_map<_Kty, _Ty, HashFcn>::pop_front()
 {
@@ -504,7 +507,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::pop_front()
 	delete entry;
 }
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 typename linked_hash_map<_Kty, _Ty, HashFcn>::size_type
 linked_hash_map<_Kty, _Ty, HashFcn>::erase(const key_type& key)
 {
@@ -521,7 +524,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::erase(const key_type& key)
 	return 0;
 }
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 void
 linked_hash_map<_Kty, _Ty, HashFcn>::erase(const_iterator first, const_iterator last)
 {
@@ -535,7 +538,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::erase(const_iterator first, const_iterator 
 	}
 }
 
-template <class _Kty, class _Ty, class HashFcn>
+template<class _Kty, class _Ty, class HashFcn>
 void
 linked_hash_map<_Kty, _Ty, HashFcn>::clear()
 {

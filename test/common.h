@@ -34,8 +34,7 @@
 	#endif
 #endif
 
-#include "../LinkedHashSet.hpp"
-#include "../LinkedHashMap.hpp"
+#include "../linked_hash.hpp"
 
 using namespace std;
 #ifdef _MSC_VER

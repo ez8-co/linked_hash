@@ -170,7 +170,7 @@ public:
 
 	linked_hash_set() : _head(&_head, &_head), _lhs() {}
 	linked_hash_set(const linked_hash_set& rhs) : _head(&_head, &_head), _lhs() { assign(rhs); }
-	linked_hash_set& operator=(const linked_hash_set& rhs) { clear(); assign(rhs); return *this; }
+	linked_hash_set& operator=(const linked_hash_set& rhs) { if(this != &rhs) { clear(); assign(rhs); } return *this; }
 	~linked_hash_set() { clear(); }
 
 	iterator find(const key_type& key) {
@@ -183,11 +183,11 @@ public:
 		return const_iterator(it != _lhs.end() ? *it : &_head);
 	}
 
+	size_type count(const key_type& key) const { return _lhs.count((lh_entry<value_type>*)&key); }
+
 	iterator access(const key_type& key);
 
 	_Pairib insert(const key_type& value);
-
-	bool count(const key_type& key) const { return _lhs.count((lh_entry<value_type>*)&key); }
 
 	size_type size() const                { return _lhs.size(); }
 	size_type max_size() const            { return _lhs.max_size(); }
@@ -374,7 +374,7 @@ public:
 
 	linked_hash_map() : _head(&_head, &_head), _lhm() {}
 	linked_hash_map(const linked_hash_map& rhs) : _head(&_head, &_head), _lhm() { assign(rhs); }
-	linked_hash_map& operator=(const linked_hash_map& rhs) { clear(); assign(rhs); return *this; }
+	linked_hash_map& operator=(const linked_hash_map& rhs) { if(this != &rhs) { clear(); assign(rhs); } return *this; }
 	~linked_hash_map() { clear(); }
 
 	iterator find(const key_type& key) {
@@ -387,11 +387,11 @@ public:
 		return const_iterator(it != _lhm.end() ? *it : &_head);
 	}
 
+	size_type count(const key_type& key) const { return _lhm.count((lh_entry<value_type>*)&key); }
+
 	iterator access(const key_type& key);
 
 	_Pairib insert(const value_type& value);
-
-	bool count(const key_type& key) const { return _lhm.count((lh_entry<value_type>*)&key); }
 
 	size_type size() const                { return (_lhm.size()); }
 	size_type max_size() const            { return (_lhm.max_size()); }

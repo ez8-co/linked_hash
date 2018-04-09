@@ -130,7 +130,7 @@ private:
 	struct lhs_hasher
 	{
 		lhs_hasher() : cmp() {}
-#ifdef _MSC_VER
+#if _MSC_VER < 1500
 		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8
@@ -334,7 +334,7 @@ private:
 	{
 		typedef std::pair<_Kty, _Ty> value_type;
 		lhm_hasher() : cmp() {}
-#ifdef _MSC_VER
+#if _MSC_VER < 1500
 		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8

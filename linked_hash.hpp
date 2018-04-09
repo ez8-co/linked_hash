@@ -43,7 +43,8 @@ class linked_hash_map;
 #include <string>
 namespace __gnu_cxx
 {
-	template<> struct hash<string>
+	template<>
+	struct hash<string>
 	{
 		inline size_t operator()(const string& s) const { return __stl_hash_string(s.c_str()); }
 	};
@@ -65,8 +66,7 @@ namespace std
 	template<class _Kty>
 	struct equal_to<lh_entry<_Kty>*>
 	{
-		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const
-		{
+		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const {
 			return lhs->val == rhs->val;
 		}
 	};
@@ -74,8 +74,7 @@ namespace std
 	template<class _Kty, class _Ty>
 	struct equal_to<lh_entry<std::pair<_Kty, _Ty> >*>
 	{
-		inline bool operator()(const lh_entry<std::pair<_Kty, _Ty> >* lhs, const lh_entry<std::pair<_Kty, _Ty> >* rhs) const
-		{
+		inline bool operator()(const lh_entry<std::pair<_Kty, _Ty> >* lhs, const lh_entry<std::pair<_Kty, _Ty> >* rhs) const {
 			return lhs->val.first == rhs->val.first;
 		}
 	};
@@ -129,19 +128,16 @@ private:
 	{
 		lhs_hasher() : cmp() {}
 #ifdef _MSC_VER
-		enum
-		{	// parameters for hash table
+		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8
 		};	// min_buckets = 2 ^^ N, 0 < N
 
-		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const
-		{	// test if _Keyval1 ordered before _Keyval2
-			return (cmp(lhs->val, rhs->val));
+		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const {
+			return cmp(lhs->val, rhs->val);
 		}
 #else
-		inline size_t operator()(const lh_entry<_Kty>* entry) const
-		{
+		inline size_t operator()(const lh_entry<_Kty>* entry) const {
 			return cmp(entry->val);
 		}
 #endif
@@ -174,14 +170,12 @@ public:
 	linked_hash_set& operator=(const linked_hash_set& rhs) { clear(); assign(rhs); return *this; }
 	~linked_hash_set() { clear(); }
 
-	iterator find(const key_type& key)
-	{
+	iterator find(const key_type& key) {
 		_lhs_iter it = _lhs.find((lh_entry<value_type>*)&key);
 		return iterator(it != _lhs.end() ? *it : &_head);
 	}
 
-	const_iterator find(const key_type& key) const
-	{
+	const_iterator find(const key_type& key) const {
 		_lhs_const_iter it = _lhs.find((lh_entry<value_type>*)&key);
 		return const_iterator(it != _lhs.end() ? *it : &_head);
 	}
@@ -243,12 +237,13 @@ template < class _Kty, class HashFcn>
 typename linked_hash_set<_Kty, HashFcn>::_Pairib
 linked_hash_set<_Kty, HashFcn>::insert(const key_type& value)
 {
-	if(!count(value)) {
-		lh_entry<_Kty>* entry = new lh_entry<_Kty>(value, _head.prev, &_head);
-		std::pair<_lhs_iter, bool> ib = _lhs.insert(entry);
+	_lhs_iter it = _lhs.find((lh_entry<value_type>*)&value);
+	if(it == _lhs.end()) {
+		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
+		_lhs.insert(entry);
 		_head.prev->next = entry;
 		_head.prev = entry;
-		return std::make_pair(iterator(*ib.first), true);
+		return std::make_pair(iterator(*it), true);
 	}
 	return std::make_pair(iterator(&_head), false);
 }
@@ -278,7 +273,7 @@ void
 linked_hash_set<_Kty, HashFcn>::pop_front()
 {
 	assert(!empty());
-	lh_entry<_Kty>* entry = _head.next;
+	lh_entry<value_type>* entry = _head.next;
 	_lhs.erase(entry);
 	_head.next = entry->next;
 	_head.next->prev = &_head;
@@ -320,12 +315,11 @@ template <class _Kty, class HashFcn>
 void
 linked_hash_set<_Kty, HashFcn>::clear()
 {
-	lh_entry<_Kty>* pos = _head.next;
-	lh_entry<_Kty>* next = 0;
+	lh_entry<value_type>* pos = _head.next;
 	_lhs.clear();
 	_head.prev = _head.next = &_head;
 	while(pos != &_head) {
-		next = pos->next;
+		lh_entry<value_type>* next = pos->next;
 		delete pos;
 		pos = next;
 	}
@@ -340,19 +334,16 @@ private:
 		typedef std::pair<_Kty, _Ty> value_type;
 		lhm_hasher() : cmp() {}
 #ifdef _MSC_VER
-		enum
-		{	// parameters for hash table
+		enum {	// parameters for hash table
 			bucket_size = 4,	// 0 < bucket_size
 			min_buckets = 8
 		};	// min_buckets = 2 ^^ N, 0 < N
 
-		inline bool operator()(const lh_entry<value_type>* lhs, const lh_entry<value_type>* rhs) const
-		{
-			return(cmp(lhs->val.first, rhs->val.first));
+		inline bool operator()(const lh_entry<value_type>* lhs, const lh_entry<value_type>* rhs) const {
+			return cmp(lhs->val.first, rhs->val.first);
 		}
 #else
-		inline size_t operator()(const lh_entry<value_type>* entry) const
-		{
+		inline size_t operator()(const lh_entry<value_type>* entry) const {
 			return cmp(entry->val.first);
 		}
 #endif
@@ -385,22 +376,17 @@ public:
 	linked_hash_map& operator=(const linked_hash_map& rhs) { clear(); assign(rhs); return *this; }
 	~linked_hash_map() { clear(); }
 
-	iterator find(const key_type& key)
-	{
+	iterator find(const key_type& key) {
 		_lhm_iter it = _lhm.find((lh_entry<value_type>*)&key);
 		return iterator(it != _lhm.end() ? *it : &_head);
 	}
 
-	const_iterator find(const key_type& key) const
-	{
+	const_iterator find(const key_type& key) const {
 		_lhm_const_iter it = _lhm.find((lh_entry<value_type>*)&key);
 		return const_iterator(it != _lhm.end() ? *it : &_head);
 	}
 
-	bool count(const key_type& key) const
-	{
-		return _lhm.count((lh_entry<value_type>*)&key);
-	}
+	bool count(const key_type& key) const { return _lhm.count((lh_entry<value_type>*)&key); }
 
 	size_type size() const { return (_lhm.size()); }
 	size_type max_size() const { return (_lhm.max_size()); }
@@ -460,12 +446,13 @@ template < class _Kty, class _Ty, class HashFcn>
 typename linked_hash_map<_Kty, _Ty, HashFcn>::_Pairib
 linked_hash_map<_Kty, _Ty, HashFcn>::insert(const value_type& value)
 {
-	if(!_lhm.count((lh_entry<value_type>*)&value)) {
+	_lhm_iter it = _lhm.find((lh_entry<value_type>*)&value);
+	if(it == _lhm.end()) {
 		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
-		std::pair<_lhm_iter, bool> ib = _lhm.insert(entry);
+		_lhm.insert(entry);
 		_head.prev->next = entry;
 		_head.prev = entry;
-		return std::make_pair(iterator(*ib.first), true);
+		return std::make_pair(iterator(*it), true);
 	}
 	return std::make_pair(iterator(&_head), false);
 }
@@ -476,16 +463,13 @@ linked_hash_map<_Kty, _Ty, HashFcn>::operator[](const key_type& key)
 {
 	_lhm_iter it = _lhm.find((lh_entry<value_type>*)&key);
 	if(it == _lhm.end()) {
-		lh_entry<value_type>* entry =
-			new lh_entry<value_type>(std::make_pair(key, _Ty()), _head.prev, &_head);
+		lh_entry<value_type>* entry = new lh_entry<value_type>(std::make_pair(key, _Ty()), _head.prev, &_head);
 		_lhm.insert(entry);
 		_head.prev->next = entry;
 		_head.prev = entry;
 		return entry->val.second;
 	}
-	else {
-		return(*it)->val.second;
-	}
+	return(*it)->val.second;
 }
 
 template <class _Kty, class _Ty, class HashFcn>
@@ -556,11 +540,10 @@ void
 linked_hash_map<_Kty, _Ty, HashFcn>::clear()
 {
 	lh_entry<value_type>* pos = _head.next;
-	lh_entry<value_type>* next = 0;
 	_lhm.clear();
 	_head.prev = _head.next = &_head;
 	while(pos != &_head) {
-		next = pos->next;
+		lh_entry<value_type>* next = pos->next;
 		delete pos;
 		pos = next;
 	}

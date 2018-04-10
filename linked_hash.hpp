@@ -29,8 +29,6 @@
 	#endif
 #endif
 
-using namespace std;
-
 
 template<class _Kty, class HashFcn = lh_hash_fcn<_Kty> >
 class linked_hash_set;
@@ -38,42 +36,6 @@ class linked_hash_set;
 template<class _Kty, class _Ty, class HashFcn = lh_hash_fcn<_Kty> >
 class linked_hash_map;
 
-
-#if !defined(_MSC_VER) && !defined(_GXX_EXPERIMENTAL_CXX0X__) && __cplusplus < 201103L
-#include <string>
-namespace __gnu_cxx
-{
-	template<>
-	struct hash<string>
-	{
-		inline size_t operator()(const string& s) const {
-			return __stl_hash_string(s.c_str());
-		}
-	};
-}
-#endif
-
-template<class value_type>
-struct lh_entry;
-
-namespace std
-{
-	template<class _Kty>
-	struct equal_to<lh_entry<_Kty>*>
-	{
-		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const {
-			return lhs->val == rhs->val;
-		}
-	};
-
-	template<class _Kty, class _Ty>
-	struct equal_to<lh_entry<std::pair<_Kty, _Ty> >*>
-	{
-		inline bool operator()(const lh_entry<std::pair<_Kty, _Ty> >* lhs, const lh_entry<std::pair<_Kty, _Ty> >* rhs) const {
-			return lhs->val.first == rhs->val.first;
-		}
-	};
-}
 
 template<class value_type>
 struct lh_entry
@@ -96,14 +58,14 @@ struct lh_const_iter : public std::iterator<std::bidirectional_iterator_tag, _Ty
 
 	explicit lh_const_iter(lh_entry<value_type>* ptr) : _ptr(ptr) {}
 	const_reference operator*() const { return static_cast<const_reference>(_ptr->val); }
-	const_pointer operator->() const  { return(&**this); }
-	lh_const_iter& operator++()       { _ptr = _ptr->next; return(*this); }
-	lh_const_iter operator++(int)     { lh_const_iter tmp = *this; ++*this; return(tmp); }
-	lh_const_iter& operator--()       { _ptr = _ptr->prev; return(*this); }
-	lh_const_iter operator--(int)     { lh_const_iter tmp = *this; --*this; return(tmp); }
+	const_pointer operator->() const  { return (&**this); }
+	lh_const_iter& operator++()       { _ptr = _ptr->next; return (*this); }
+	lh_const_iter operator++(int)     { lh_const_iter tmp = *this; ++*this; return (tmp); }
+	lh_const_iter& operator--()       { _ptr = _ptr->prev; return (*this); }
+	lh_const_iter operator--(int)     { lh_const_iter tmp = *this; --*this; return (tmp); }
 
-	bool operator==(const lh_const_iter& rhs) const { return(_ptr == rhs._ptr); }
-	bool operator!=(const lh_const_iter& rhs) const { return(!(*this == rhs)); }
+	bool operator==(const lh_const_iter& rhs) const { return (_ptr == rhs._ptr); }
+	bool operator!=(const lh_const_iter& rhs) const { return (!(*this == rhs)); }
 
 protected:
 	lh_entry<value_type>* _ptr;
@@ -117,13 +79,46 @@ struct lh_iter : public lh_const_iter<_Ty>
 	typedef value_type* pointer;
 
 	explicit lh_iter(lh_entry<value_type>*const ptr) : lh_const_iter<value_type>(ptr) {}
-	reference operator*() const { return((reference)**(lh_const_iter<value_type> *)this); }
-	pointer operator->() const  { return(&**this); }
-	lh_iter& operator++()       { ++(*(lh_const_iter<value_type> *)this); return(*this); }
-	lh_iter& operator--()       { --(*(lh_const_iter<value_type> *)this); return(*this); }
+	reference operator*() const { return ((reference)**(lh_const_iter<value_type>*)this); }
+	pointer operator->() const  { return (&**this); }
+	lh_iter& operator++()       { ++(*(lh_const_iter<value_type>*)this); return (*this); }
+	lh_iter& operator--()       { --(*(lh_const_iter<value_type>*)this); return (*this); }
 };
 
-template<class _Kty, class HashFcn/* = lh_hash_fcn <_Kty> */>
+#if !defined(_MSC_VER) && !defined(_GXX_EXPERIMENTAL_CXX0X__) && __cplusplus < 201103L
+#include <string>
+namespace __gnu_cxx
+{
+	template<>
+	struct hash<std::string>
+	{
+		inline size_t operator()(const std::string& s) const {
+			return __stl_hash_string(s.c_str());
+		}
+	};
+}
+#endif
+
+namespace std
+{
+	template<class _Kty>
+	struct equal_to<lh_entry<_Kty>*>
+	{
+		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const {
+			return lhs->val == rhs->val;
+		}
+	};
+
+	template<class _Kty, class _Ty>
+	struct equal_to<lh_entry<std::pair<_Kty, _Ty> >*>
+	{
+		inline bool operator()(const lh_entry<std::pair<_Kty, _Ty> >* lhs, const lh_entry<std::pair<_Kty, _Ty> >* rhs) const {
+			return lhs->val.first == rhs->val.first;
+		}
+	};
+}
+
+template<class _Kty, class HashFcn/* = lh_hash_fcn<_Kty> */>
 class linked_hash_set
 {
 private:
@@ -168,8 +163,8 @@ public:
 	typedef std::pair<iterator, iterator> _Pairii;
 	typedef std::pair<const_iterator, const_iterator> _Paircc;
 
-	linked_hash_set() : _head(&_head, &_head), _lhs() {}
-	linked_hash_set(const linked_hash_set& rhs) : _head(&_head, &_head), _lhs() { assign(rhs); }
+	linked_hash_set() : _head(&_head, &_head) {}
+	linked_hash_set(const linked_hash_set& rhs) : _head(&_head, &_head) { assign(rhs); }
 	linked_hash_set& operator=(const linked_hash_set& rhs) { if(this != &rhs) { clear(); assign(rhs); } return *this; }
 	~linked_hash_set() { clear(); }
 
@@ -375,8 +370,8 @@ public:
 	typedef std::pair<iterator, iterator> _Pairii;
 	typedef std::pair<const_iterator, const_iterator> _Paircc;
 
-	linked_hash_map() : _head(&_head, &_head), _lhm() {}
-	linked_hash_map(const linked_hash_map& rhs) : _head(&_head, &_head), _lhm() { assign(rhs); }
+	linked_hash_map() : _head(&_head, &_head) {}
+	linked_hash_map(const linked_hash_map& rhs) : _head(&_head, &_head) { assign(rhs); }
 	linked_hash_map& operator=(const linked_hash_map& rhs) { if(this != &rhs) { clear(); assign(rhs); } return *this; }
 	~linked_hash_map() { clear(); }
 
@@ -474,7 +469,7 @@ linked_hash_map<_Kty, _Ty, HashFcn>::operator[](const key_type& key)
 		_head.prev = entry;
 		return entry->val.second;
 	}
-	return(*it)->val.second;
+	return (*it)->val.second;
 }
 
 template<class _Kty, class _Ty, class HashFcn>

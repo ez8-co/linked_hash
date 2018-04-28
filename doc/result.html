@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html style="height: 100%; overflow:none">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0; overflow: hidden" onresize="">
+       <div id="container1" style="height: 50%"></div>
+       <div id="container2" style="height: 50%"></div>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+       <script type="text/javascript">
+        var myChart1 = echarts.init(document.getElementById("container1"), 'light');
+            myChart1.setOption({
+            title: {
+                text: 'linked_hash_map'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data:['map','unordered_map','linked_hash_map']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['insert','count','find','erase','pop_front','clear']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name:'map',
+                    type:'line',
+                    data:[1.62, 1.57, 1.70, 0.07, 0.00, 0.00]
+                },
+                {
+                    name:'unordered_map',
+                    type:'line',
+                    data:[0.56, 0.29, 0.13, 0.12, 0.00, 0.00]
+                },
+                {
+                    name:'linked_hash_map',
+                    type:'line',
+                    data:[0.28, 0.36, 0.25, 0.11, 0.00, 0.00]
+                }
+            ]
+        }, true);
+        var myChart2 = echarts.init(document.getElementById("container2"), 'light');
+        myChart2.setOption({
+            title: {
+                text: 'linked_hash_set'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data:['set ','unordered_set','linked_hash_set']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['insert','count','find','erase','pop_front','clear']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name:'set ',
+                    type:'line',
+                    data:[2.50, 1.61, 1.75, 0.05, 0.00, 0.00]
+                },
+                {
+                    name:'unordered_set',
+                    type:'line',
+                    data:[0.16, 0.29, 0.15, 0.11, 0.00, 0.00]
+                },
+                {
+                    name:'linked_hash_set',
+                    type:'line',
+                    data:[0.21, 0.39, 0.17, 0.11, 0.00, 0.00]
+                }
+            ]
+        }, true);
+        window.addEventListener("resize", function () {
+            myChart1.resize();
+        	myChart2.resize();
+        });
+       </script>
+   </body>
+</html>

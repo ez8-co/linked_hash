@@ -39,18 +39,48 @@ public:
 	}
 };
 
+TEST_F(bench_LinkedHashMap, for_each)
+{
+	map<int, int> testMap;
+	NormalRun(map_insert_test(), testMap, DATA_COUNT);
+	BenchRun("map", st_for_each_test(), testMap, testMap.size());
+
+	unordered_map<int, int> testHashMap;
+	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
+	BenchRun("unordered_map", st_for_each_test(), testHashMap, testHashMap.size());
+
+	linked_hash_map<int, int> testLinkedHashMap;
+	NormalRun(map_insert_test(), testLinkedHashMap, DATA_COUNT);
+	BenchRun("linked_hash_map", st_for_each_test(), testLinkedHashMap, testLinkedHashMap.size());
+}
+
 TEST_F(bench_LinkedHashMap, insert)
 {
 	map<int, int> testMap;
 	BenchRun("map", map_insert_test(), testMap, DATA_COUNT);
 
-	hash_map<int, int> testHashMap;
-	BenchRun("hash_map", map_insert_test(), testHashMap, DATA_COUNT);
+	unordered_map<int, int> testHashMap;
+	BenchRun("unordered_map", map_insert_test(), testHashMap, DATA_COUNT);
 	ASSERT_EQ(testMap.size(), testHashMap.size());
 
 	linked_hash_map<int, int> testLinkedHashMap;
 	BenchRun("linked_hash_map", map_insert_test(), testLinkedHashMap, DATA_COUNT);
 	ASSERT_EQ(testMap.size(), testLinkedHashMap.size());
+}
+
+TEST_F(bench_LinkedHashMap, count)
+{
+	map<int, int> testMap;
+	NormalRun(map_insert_test(), testMap, DATA_COUNT);
+	BenchRun("map", st_count_test(), testMap, DATA_COUNT);
+
+	unordered_map<int, int> testHashMap;
+	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
+	BenchRun("unordered_map", st_count_test(), testHashMap, DATA_COUNT);
+
+	linked_hash_map<int, int> testLinkedHashMap;
+	NormalRun(map_insert_test(), testLinkedHashMap, DATA_COUNT);
+	BenchRun("linked_hash_map", st_count_test(), testLinkedHashMap, DATA_COUNT);
 }
 
 TEST_F(bench_LinkedHashMap, find)
@@ -59,9 +89,9 @@ TEST_F(bench_LinkedHashMap, find)
 	NormalRun(map_insert_test(), testMap, DATA_COUNT);
 	BenchRun("map", st_find_test(), testMap, DATA_COUNT);
 
-	hash_map<int, int> testHashMap;
+	unordered_map<int, int> testHashMap;
 	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
-	BenchRun("hash_map", st_find_test(), testHashMap, DATA_COUNT);
+	BenchRun("unordered_map", st_find_test(), testHashMap, DATA_COUNT);
 
 	linked_hash_map<int, int> testLinkedHashMap;
 	NormalRun(map_insert_test(), testLinkedHashMap, DATA_COUNT);
@@ -74,9 +104,9 @@ TEST_F(bench_LinkedHashMap, erase)
 	NormalRun(map_insert_test(), testMap, DATA_COUNT);
 	BenchRun("map", st_erase_test(), testMap, DATA_COUNT);
 
-	hash_map<int, int> testHashMap;
+	unordered_map<int, int> testHashMap;
 	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
-	BenchRun("hash_map", st_erase_test(), testHashMap, DATA_COUNT);
+	BenchRun("unordered_map", st_erase_test(), testHashMap, DATA_COUNT);
 
 	linked_hash_map<int, int> testLinkedHashMap;
 	NormalRun(map_insert_test(), testLinkedHashMap, DATA_COUNT);
@@ -90,9 +120,9 @@ TEST_F(bench_LinkedHashMap, pop_front)
 	BenchRun("map", st_pop_front_test(), testMap, testMap.size());
 	ASSERT_TRUE(testMap.empty());
 
-	hash_map<int, int> testHashMap;
+	unordered_map<int, int> testHashMap;
 	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
-	BenchRun("hash_map", st_pop_front_test(), testHashMap, testHashMap.size());
+	BenchRun("unordered_map", st_pop_front_test(), testHashMap, testHashMap.size());
 	ASSERT_TRUE(testHashMap.empty());
 
 	linked_hash_map<int, int> testLinkedHashMap;
@@ -108,9 +138,9 @@ TEST_F(bench_LinkedHashMap, clear)
 	BenchRun("map", st_clear_test(), testMap);
 	ASSERT_TRUE(testMap.empty());
 
-	hash_map<int, int> testHashMap;
+	unordered_map<int, int> testHashMap;
 	NormalRun(map_insert_test(), testHashMap, DATA_COUNT);
-	BenchRun("hash_map", st_clear_test(), testHashMap);
+	BenchRun("unordered_map", st_clear_test(), testHashMap);
 	ASSERT_TRUE(testHashMap.empty());
 
 	linked_hash_map<int, int> testLinkedHashMap;
@@ -207,7 +237,7 @@ TEST_F(bench_LinkedHashMap, LRUModeTest)
 
 	list<int> testListWithHashSet;
 	NormalRun(LRU_list_push_back_test(), testListWithHashSet, DATA_COUNT);
-	BenchRun("hash_set dedup", LRU_dedup_test< hash_set<int> >(), testListWithHashSet, &cost);
+	BenchRun("unordered_set dedup", LRU_dedup_test< unordered_set<int> >(), testListWithHashSet, &cost);
 	ASSERT_EQ(testListWithSet.size(), testListWithHashSet.size());
 
 	list<int> testListSortUnique;
@@ -221,10 +251,10 @@ TEST_F(bench_LinkedHashMap, LRUModeTest)
 	BenchRun("map", LRU_map_pop_test< map<int64_t, set<int> >, map<int, int64_t> >(), testMapWithTimeAuxMap, &cost);
 	ASSERT_EQ(testMapWithTimeAuxMap.size(), DATA_RANGE - DATA_POP_CNT);
 
-	printf("\n######### hash_map cache with timestamp aux ##########\n");
-	hash_map<int, int64_t> testHashMapWithTimeAuxMap;
+	printf("\n######### unordered_map cache with timestamp aux ##########\n");
+	unordered_map<int, int64_t> testHashMapWithTimeAuxMap;
 	cost = BenchRun("==ESTABLISH==", LRU_map_insert_test(), testHashMapWithTimeAuxMap, DATA_COUNT);
-	BenchRun("hash_map", LRU_map_pop_test< map<int64_t, set<int> >, hash_map<int, int64_t> >(), testHashMapWithTimeAuxMap, &cost);
+	BenchRun("unordered_map", LRU_map_pop_test< map<int64_t, set<int> >, unordered_map<int, int64_t> >(), testHashMapWithTimeAuxMap, &cost);
 	ASSERT_EQ(testHashMapWithTimeAuxMap.size(), DATA_RANGE - DATA_POP_CNT);
 
 	printf("\n######### linked hash map cache ##########\n");

@@ -5,36 +5,38 @@
 #include <list>
 #include <map>
 
+#include "../linked_hash.hpp"
+
 #ifdef _MSC_VER
 	#if _MSC_VER >= 1500
 		#include <unordered_map>
 		#include <unordered_set>
-		#define hash_map std::tr1::unordered_map
-		#define hash_set std::tr1::unordered_set
+		#define unordered_map std::tr1::unordered_map
+		#define unordered_set std::tr1::unordered_set
 	#else
 		#include <hash_map>
 		#include <hash_set>
-		#define hash_map stdext::hash_map
-		#define hash_set stdext::hash_set
+		#define unordered_map stdext::hash_map
+		#define unordered_set stdext::hash_set
 	#endif
 #else
 	#ifdef _GXX_EXPERIMENTAL_CXX0X__
 		#include <tr1/unordered_map>
 		#include <tr1/unordered_set>
-		#define hash_map std::tr1::unordered_map
-		#define hash_set std::tr1::unordered_set
+		#define unordered_map std::tr1::unordered_map
+		#define unordered_set std::tr1::unordered_set
 	#elif __cplusplus >= 201103L
 		#include <unordered_map>
 		#include <unordered_set>
-		#define hash_map std::unordered_map
-		#define hash_set std::unordered_set
+		#define unordered_map std::unordered_map
+		#define unordered_set std::unordered_set
 	#else
 		#include <hash_map>
 		#include <hash_set>
+		#define unordered_map std::hash_map
+		#define unordered_set std::hash_set
 	#endif
 #endif
-
-#include "../linked_hash.hpp"
 
 using namespace std;
 #ifdef _MSC_VER
@@ -57,8 +59,8 @@ BenchRun(const string& desc, FUNC_TYPE function, ARG_TYPE& arg, uint64_t times)
 	for(uint64_t i = 0; i < times; ++i) {
 		function(arg, i);
 	}
-	double cost =(double)(clock() - start) / CLOCKS_PER_SEC;
-	printf("[%-18s] Iters:%" PRId64 ", Cost time:%.2lf s\n", desc.c_str(), times,(double)cost);
+	double cost = (double)(clock() - start) / CLOCKS_PER_SEC;
+	printf("[%-20s] Iters:%" PRId64 ", Cost time:%.2lf s\n", desc.c_str(), times, (double)cost);
 	return cost;
 }
 
@@ -71,18 +73,21 @@ BenchRun(const string& desc, FUNC_TYPE function, ARG_TYPE& arg, double* last = N
 	start = clock();
 	function(arg);
 	double cost = (double)(clock() - start) / CLOCKS_PER_SEC + (last ? *last : 0);
-	printf("[%-18s] Cost time:%.2lf s\n", desc.c_str(),(double)cost);
+	printf("[%-20s] Cost time:%.2lf s\n", desc.c_str(),(double)cost);
 	return cost;
 }
 
 template <class FUNC_TYPE, class ARG_TYPE>
 inline
-void
+double
 NormalRun(FUNC_TYPE function, ARG_TYPE& arg, uint64_t times)
 {
+	clock_t start;
+	start = clock();
 	for(uint64_t i = 0; i < times; ++i) {
 		function(arg, i);
 	}
+	return (double)(clock() - start) / CLOCKS_PER_SEC;
 }
 
 extern vector<int>* g_data;
@@ -115,6 +120,26 @@ public:
 	void operator()(T& container, uint64_t i)
 	{
 		ASSERT_TRUE(container.find((*g_data)[i]) != container.end());
+	}
+};
+
+class st_count_test
+{
+public:
+	template <class T>
+	void operator()(T& container, uint64_t i)
+	{
+		ASSERT_TRUE(container.count((*g_data)[i]) == 1);
+	}
+};
+
+class st_for_each_test
+{
+public:
+	template <class T>
+	void operator()(T& container, uint64_t i)
+	{
+		for(typename T::const_iterator it = container.begin(); it != container.end(); ++it);
 	}
 };
 
@@ -287,12 +312,8 @@ class LRU_map_pop_test
 public:
 	void operator()(K& cache)
 	{
-		// build aux
-		LRU_map_pop_test_aux<T, K> aux(_tmp);
-		aux(cache);
-		// cache pop
-		LRU_map_pop_test_sub<T, K> sub(cache);
-		sub(_tmp);
+		BenchRun (" 1.build aux", LRU_map_pop_test_aux<T, K> (_tmp), cache);
+ 		BenchRun (" 2.cache pop", LRU_map_pop_test_sub<T, K> (cache), _tmp);
 	}
 
 private:

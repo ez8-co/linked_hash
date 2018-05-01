@@ -33,8 +33,8 @@
 	#else
 		#include <hash_map>
 		#include <hash_set>
-		#define unordered_map std::hash_map
-		#define unordered_set std::hash_set
+		#define unordered_map __gnu_cxx::hash_map
+		#define unordered_set __gnu_cxx::hash_set
 	#endif
 #endif
 

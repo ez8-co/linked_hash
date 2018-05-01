@@ -4,10 +4,21 @@
        <meta charset="utf-8">
    </head>
    <body style="height: 100%; margin: 0; overflow: hidden" onresize="">
-       <div id="container1" style="height: 50%"></div>
-       <div id="container2" style="height: 50%"></div>
-       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
-       <script type="text/javascript">
+        <div style="height: 50%">
+            <div id="container1" style="width: 50%; height: 100%; float: left"></div>
+            <div id="container2" style="width: 50%; height: 100%; float: left"></div>
+        </div>
+        <div style="height: 50%">
+            <div id="container3" style="width: 50%; height: 100%; float: left"></div>
+            <div id="container4" style="width: 50%; height: 100%; float: left"></div>
+        </div>
+        <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+        <script type="text/javascript">
+        var seriesLabel = {
+            normal: {
+                show: true
+            }
+        }
         var myChart1 = echarts.init(document.getElementById("container1"), 'light');
             myChart1.setOption({
             title: {
@@ -25,14 +36,9 @@
                 bottom: '3%',
                 containLabel: true
             },
-            toolbox: {
-                feature: {
-                    saveAsImage: {}
-                }
-            },
             xAxis: {
                 type: 'category',
-                data: ['insert','count','find','erase','pop_front','clear']
+                data: ['for_each', 'insert','count','find','erase','pop_front','clear']
             },
             yAxis: {
                 type: 'value'
@@ -41,17 +47,20 @@
                 {
                     name:'map',
                     type:'line',
-                    data:[1.62, 1.57, 1.70, 0.07, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[1.44, 1.11, 1.09, 1.02, 0.06, 0.00, 0.00]
                 },
                 {
                     name:'unordered_map',
                     type:'line',
-                    data:[0.56, 0.29, 0.13, 0.12, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[0.32, 0.42, 0.24, 0.11, 0.10, 0.00, 0.00]
                 },
                 {
                     name:'linked_hash_map',
                     type:'line',
-                    data:[0.28, 0.36, 0.25, 0.11, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[0.40, 0.17, 0.28, 0.15, 0.10, 0.00, 0.00]
                 }
             ]
         }, true);
@@ -72,14 +81,9 @@
                 bottom: '3%',
                 containLabel: true
             },
-            toolbox: {
-                feature: {
-                    saveAsImage: {}
-                }
-            },
             xAxis: {
                 type: 'category',
-                data: ['insert','count','find','erase','pop_front','clear']
+                data: ['for_each', 'insert','count','find','erase','pop_front','clear']
             },
             yAxis: {
                 type: 'value'
@@ -88,23 +92,134 @@
                 {
                     name:'set ',
                     type:'line',
-                    data:[2.50, 1.61, 1.75, 0.05, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[1.61, 1.31, 1.22, 1.33, 0.06, 0.00, 0.00]
                 },
                 {
                     name:'unordered_set',
                     type:'line',
-                    data:[0.16, 0.29, 0.15, 0.11, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[0.68, 0.11, 0.25, 0.11, 0.10, 0.00, 0.00]
                 },
                 {
                     name:'linked_hash_set',
                     type:'line',
-                    data:[0.21, 0.39, 0.17, 0.11, 0.00, 0.00]
+                    label:seriesLabel,
+                    data:[0.53, 0.17, 0.29, 0.15, 0.10, 0.00, 0.00]
+                }
+            ]
+        }, true);
+        var myChart3 = echarts.init(document.getElementById("container3"), 'light');
+            myChart3.setOption({
+            title: {
+                text: 'linked_hash_map (LRU Mode)'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['list', 'map+timestamp','unordered_map+timestamp','linked_hash_map']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name:'simple pop(*)',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[0.37]
+                },
+                {
+                    name:'unordered_set dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[0.67]
+                },
+                {
+                    name:'set dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[1.55]
+                },
+                {
+                    name:'sort+unique dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[8.27]
+                },
+                {
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[null, 5.03, 1.69, 0.27]
+                }
+            ]
+        }, true);
+        var myChart4 = echarts.init(document.getElementById("container4"), 'light');
+        myChart4.setOption({
+            title: {
+                text: 'linked_hash_set (LRU Mode)'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['list', 'map+timestamp','unordered_map+timestamp','linked_hash_set']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name:'simple pop(*)',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[0.37]
+                },
+                {
+                    name:'unordered_set dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[0.59]
+                },
+                {
+                    name:'set dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[1.52]
+                },
+                {
+                    name:'sort+unique dedup',
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[8.68]
+                },
+                {
+                    type:'bar',
+                    label:seriesLabel,
+                    data:[null, 5.04, 1.69, 0.30]
                 }
             ]
         }, true);
         window.addEventListener("resize", function () {
             myChart1.resize();
         	myChart2.resize();
+            myChart3.resize();
+            myChart4.resize();
         });
        </script>
    </body>

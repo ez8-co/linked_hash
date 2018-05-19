@@ -233,8 +233,7 @@ template<class _Kty, class HashFcn>
 typename linked_hash_set<_Kty, HashFcn>::_Pairib
 linked_hash_set<_Kty, HashFcn>::insert(const key_type& value)
 {
-	_lhs_iter it = _lhs.find((lh_entry<value_type>*)&value);
-	if(it == _lhs.end()) {
+	if(!_lhs.count((lh_entry<value_type>*)&value)) {
 		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
 		std::pair<_lhs_iter, bool> ib = _lhs.insert(entry);
 		if(ib.second) {
@@ -443,8 +442,7 @@ template<class _Kty, class _Ty, class HashFcn>
 typename linked_hash_map<_Kty, _Ty, HashFcn>::_Pairib
 linked_hash_map<_Kty, _Ty, HashFcn>::insert(const value_type& value)
 {
-	_lhm_iter it = _lhm.find((lh_entry<value_type>*)&value);
-	if(it == _lhm.end()) {
+	if(!_lhm.count((lh_entry<value_type>*)&value)) {
 		lh_entry<value_type>* entry = new lh_entry<value_type>(value, _head.prev, &_head);
 		std::pair<_lhm_iter, bool> ib = _lhm.insert(entry);
 		if(ib.second) {

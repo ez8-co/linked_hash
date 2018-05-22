@@ -1,6 +1,6 @@
 # linked_hash
 
-[![Build Status](https://semaphoreci.com/api/v1/orca-zhang-91/linked_hash/branches/master/shields_badge.svg)](https://semaphoreci.com/orca-zhang-91/linked_hash)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/ez8-co/ezpp/blob/master/LICENSE)  [![Build Status](https://semaphoreci.com/api/v1/orca-zhang-91/linked_hash/branches/master/shields_badge.svg)](https://semaphoreci.com/orca-zhang-91/linked_hash)
 
 ## Test Results
 

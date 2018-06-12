@@ -105,16 +105,22 @@ namespace std
 	struct equal_to<lh_entry<_Kty>*>
 	{
 		inline bool operator()(const lh_entry<_Kty>* lhs, const lh_entry<_Kty>* rhs) const {
-			return lhs->val == rhs->val;
+			return cmp(lhs->val, rhs->val);
 		}
+
+	private:
+		equal_to<_Kty> cmp;
 	};
 
 	template<class _Kty, class _Ty>
 	struct equal_to<lh_entry<std::pair<_Kty, _Ty> >*>
 	{
 		inline bool operator()(const lh_entry<std::pair<_Kty, _Ty> >* lhs, const lh_entry<std::pair<_Kty, _Ty> >* rhs) const {
-			return lhs->val.first == rhs->val.first;
+			return cmp(lhs->val.first, rhs->val.first);
 		}
+
+	private:
+		equal_to<_Kty> cmp;
 	};
 }
 

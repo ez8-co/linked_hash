@@ -6,7 +6,7 @@
 
 [Open Interactive Result Page](https://ez8-co.github.io/linked_hash/)
 
-![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_map.png)
-![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_map%20(LRU%20Mode).png)
-![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_set.png)
-![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_set%20(LRU%20Mode).png)
+![](https://github.com/ez8-co/linked_hash/raw/master/docs/linked_hash_map.png)
+![](https://github.com/ez8-co/linked_hash/raw/master/docs/linked_hash_map%20(LRU%20Mode).png)
+![](https://github.com/ez8-co/linked_hash/raw/master/docs/linked_hash_set.png)
+![](https://github.com/ez8-co/linked_hash/raw/master/docs/linked_hash_set%20(LRU%20Mode).png)

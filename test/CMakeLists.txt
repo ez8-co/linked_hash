@@ -1,8 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 CMAKE_POLICY(VERSION 2.8)
 
-find_package(Threads REQUIRED)
-
 # Enable ExternalProject CMake module
 include(ExternalProject)
 

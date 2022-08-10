@@ -4,7 +4,7 @@
 
 ## Test Results
 
-[Open Interactive Result Page](http://htmlpreview.github.io/?https://github.com/ez8-co/linked_hash/blob/master/doc/result.html)
+[Open Interactive Result Page](https://ez8-co.github.io/linked_hash/)
 
 ![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_map.png)
 ![](https://github.com/ez8-co/linked_hash/raw/master/doc/linked_hash_map%20(LRU%20Mode).png)

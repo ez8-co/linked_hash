@@ -26,8 +26,6 @@ set_target_properties(libgtest PROPERTIES
     "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
 )
 
-add_dependencies(gtest)
-
 # I couldn't make it work with INTERFACE_INCLUDE_DIRECTORIES
 include_directories("${source_dir}/googletest/include")
 
